@@ -1,0 +1,84 @@
+group 'uitests'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "ru.d10xa:gradle-allure-plugin:0.5.5"
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+apply plugin: 'ru.d10xa.allure'
+
+allure {
+    aspectjweaver = true
+
+    junit = false
+    testNG = true
+    spock = false
+
+    geb = false
+
+    allureResultsDir = "$buildDir/allure-results"
+    allureReportDir = "$buildDir/allure-report"
+
+    allureVersion="1.4.17"
+    aspectjVersion = "1.8.9"
+    allureSpockGebExtensionVersion = "0.2.1"
+    allureJunitAspectjAdaptorVersion = "0.1.1"
+
+    clean = true
+}
+
+dependencies {
+    testCompile "ru.yandex.qatools.allure:allure-testng-adaptor:1.4.17"
+
+    compile group: 'org.testng', name: 'testng', version: '6.10'
+    compile group: 'log4j', name: 'log4j', version: '1.2.17'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.12'
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.12'
+
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.4.0'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-server', version: '3.4.0'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.4.0'
+
+    compile group: 'io.github.bonigarcia', name: 'webdrivermanager', version: '1.6.2'
+    compile group: 'javax.mail', name: 'javax.mail-api', version: '1.5.5'
+    compile group: 'eu.ocathain.com.sun.mail', name: 'javax.mail', version: '1.5.2'
+
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+
+    compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.6'
+    compile 'org.robotframework:robotframework:3.0'
+    compile 'org.robotframework:javalib-core:1.2.1'
+}
+
+task smokeTest(type: Test) {
+    useTestNG() {
+        suites 'src/test/resources/testNG.xml'
+        systemProperty 'browser', System.properties['browser']
+        systemProperty 'login', System.properties['login']
+        systemProperty 'pass', System.properties['pass']
+    }
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+}
+
+tasks.withType(Test)*.finalizedBy allureReport
